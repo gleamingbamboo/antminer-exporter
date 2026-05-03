@@ -93,6 +93,41 @@ docker run -d -p 9100:9100 --name antminer-exporter \
 - Mount a custom `antminer_exporter/config.py` to `/app/antminer_exporter/config.py` to override miner settings, log level, etc.
 - Logs are written to `./logs` on the host machine by default (via volume mount).
 
+
+## VictoriaMetrics Uploader
+
+The `scripts/uploader.py` script fetches metrics directly from each ASIC miner's `/metrics` endpoint and pushes them to VictoriaMetrics.
+
+### Configuration
+
+Add to `antminer_exporter/config.py`:
+
+```python
+# VictoriaMetrics configuration
+VICTORIA_METRICS_URL = "http://localhost:8428/api/v1/import/prometheus"  # VictoriaMetrics import URL
+VICTORIA_METRICS_TOKEN = ""  # Optional: Bearer token for VictoriaMetrics
+```
+
+### Run Uploader
+
+```bash
+cd scripts
+uv run uploader.py
+```
+
+The uploader will:
+1. Fetch metrics from each miner's `/metrics` endpoint
+2. Convert ASIC metrics format to Prometheus exposition format
+3. Push to VictoriaMetrics
+4. Sleep for `POLL_INTERVAL` seconds and repeat
+
+### VictoriaMetrics Setup
+
+For local testing, run VictoriaMetrics with Docker:
+
+```bash
+docker run -d -p 8428:8428 victoriametrics/victoria-metrics
+```
 ## Testing
 
 ### Prerequisites

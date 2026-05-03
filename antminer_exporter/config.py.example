@@ -15,6 +15,10 @@ MINERS = [
 
 POLL_INTERVAL = 10
 
+# VictoriaMetrics configuration
+VICTORIA_METRICS_URL = "http://localhost:8428/api/v1/import/prometheus"  # VictoriaMetrics import URL
+VICTORIA_METRICS_TOKEN = ""  # Optional: Bearer token for VictoriaMetrics
+
 # Logging configuration
 LOG_ENABLED = True
 LOG_LEVEL = "INFO"
