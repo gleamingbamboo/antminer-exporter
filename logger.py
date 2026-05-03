@@ -12,7 +12,7 @@ if LOG_ENABLED:
         level=LOG_LEVEL,
         rotation="10 MB",
         retention="30 days",
-        format="{time:YYYY-MM-DD HH:mm:ss} | {level} | {message}"
+        format="{time:YYYY-MM-DD HH:mm:ss} | {level} | {message}",
     )
 else:
     logger.disable("antminer_exporter")

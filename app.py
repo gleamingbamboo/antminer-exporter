@@ -13,7 +13,7 @@ def process(ip, data):
         miner = data.get("miner", {})
 
         # --- Hashrate ---
-        hr = miner.get("instant_hashrate", 0)   # TH/s
+        hr = miner.get("instant_hashrate", 0)  # TH/s
 
         # --- Temps ---
         temp_max = miner.get("chip_temp", {}).get("max", 0)
