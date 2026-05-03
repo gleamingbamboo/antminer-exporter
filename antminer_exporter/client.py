@@ -12,10 +12,14 @@ class MinerClient:
         self.token = None
         self.base_url = f"http://{ip}"
 
+    def _url(self, endpoint: str) -> str:
+        """Build full URL for a given API endpoint."""
+        return f"{self.base_url}{endpoint}"
+
     def unlock(self) -> bool:
         """Unlock miner with password, returns True if successful."""
         try:
-            url = f"{self.base_url}/api/v1/unlock"
+            url = self._url("/api/v1/unlock")
             response = requests.post(
                 url,
                 json={"pw": self.password},
@@ -24,7 +28,8 @@ class MinerClient:
             if response.status_code == 200:
                 data = response.json()
                 self.token = data.get("token")
-                logger.debug(f"Unlocked {self.ip}, token: {self.token[:8] if self.token else 'None'}...")
+                token_str = self.token[:8] if self.token else "None"
+                logger.debug(f"Unlocked {self.ip}, token: {token_str}...")
                 return True
             elif response.status_code == 403:
                 logger.error(f"Wrong password for {self.ip}")
@@ -45,7 +50,7 @@ class MinerClient:
     def fetch_summary(self):
         """Fetch from /api/v1/summary with auth."""
         try:
-            url = f"{self.base_url}/api/v1/summary"
+            url = self._url("/api/v1/summary")
             response = requests.get(
                 url,
                 auth=("root", self.password),
@@ -60,7 +65,7 @@ class MinerClient:
     def fetch_metrics(self):
         """Fetch from /api/v1/metrics with auth."""
         try:
-            url = f"{self.base_url}/api/v1/metrics"
+            url = self._url("/api/v1/metrics")
             response = requests.get(
                 url,
                 auth=("root", self.password),
