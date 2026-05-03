@@ -2,10 +2,15 @@ import time
 
 from prometheus_client import start_http_server
 
-from .client import fetch_summary
-from .config import MINERS, POLL_INTERVAL
-from .logger import logger
-from .metrics import fan, hashrate, temp
+from antminer_exporter.client import fetch_metrics, fetch_summary
+from antminer_exporter.config import MINERS, POLL_INTERVAL
+from antminer_exporter.logger import logger
+from antminer_exporter.metrics import chip_temp, fan, fan_duty, hashrate, pcb_temp, power, temp
+
+
+def scale_fixed_point(value, scale=2**30):
+    """Convert fixed-point value (30 fractional bits) to float."""
+    return value / scale if value else 0
 
 
 def process(ip, data):
@@ -36,6 +41,40 @@ def process(ip, data):
         logger.error(f"Parse error for {ip}: {e}")
 
 
+def process_metrics(ip, data):
+    try:
+        metrics_array = data.get("metrics", [])
+        if not metrics_array:
+            logger.warning(f"No metrics data for {ip}")
+            return
+
+        # Get the latest metrics entry
+        latest = metrics_array[-1]
+        d = latest.get("data", {})
+
+        # Scale fixed-point values (30 fractional bits)
+        chip = scale_fixed_point(d.get("chip_max_temp", 0))
+        pcb = scale_fixed_point(d.get("pcb_max_temp", 0))
+        duty = scale_fixed_point(d.get("fan_duty", 0))
+        power_w = scale_fixed_point(d.get("power_consumption", 0))
+        hr = d.get("hashrate", 0)  # Already float
+
+        # Update metrics
+        chip_temp.labels(ip=ip).set(chip)
+        pcb_temp.labels(ip=ip).set(pcb)
+        fan_duty.labels(ip=ip).set(duty)
+        power.labels(ip=ip).set(power_w)
+        hashrate.labels(ip=ip).set(hr)
+
+        logger.debug(
+            f"Metrics for {ip}: chip={chip:.2f}°C, pcb={pcb:.2f}°C, "
+            f"duty={duty:.1f}%, power={power_w:.1f}W, hashrate={hr} TH/s"
+        )
+
+    except Exception as e:
+        logger.error(f"Metrics parse error for {ip}: {e}")
+
+
 def main():
     start_http_server(9100)
     logger.info("Exporter started on :9100")
@@ -46,11 +85,16 @@ def main():
             password = miner["password"]
 
             logger.debug(f"Fetching data from {ip}")
-            data = fetch_summary(ip, password)
+            # Try new /metrics endpoint first, fallback to old /api/v1/summary
+            data = fetch_metrics(ip, password)
             if data:
-                process(ip, data)
+                process_metrics(ip, data)
             else:
-                logger.warning(f"No data received from {ip}")
+                data = fetch_summary(ip, password)
+                if data:
+                    process(ip, data)
+                else:
+                    logger.warning(f"No data received from {ip}")
 
         time.sleep(POLL_INTERVAL)
 

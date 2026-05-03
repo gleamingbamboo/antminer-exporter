@@ -150,5 +150,11 @@ Outputs `scripts/dashboard.json` ready to import into Grafana.
 | Metric | Description | Labels |
 |--------|-------------|--------|
 | `asic_hashrate` | Instant hashrate (TH/s) | `ip` |
-| `asic_temp` | Maximum chip temperature (°C) | `ip` |
-| `asic_fan` | Average fan RPM | `ip` |
+| `asic_temp` | Maximum chip temperature (°C) from `/api/v1/summary` | `ip` |
+| `asic_fan` | Average fan RPM from `/api/v1/summary` | `ip` |
+| `asic_chip_temp` | Chip max temperature (°C) from `/metrics` endpoint | `ip` |
+| `asic_pcb_temp` | PCB max temperature (°C) from `/metrics` endpoint | `ip` |
+| `asic_fan_duty` | Fan duty percentage from `/metrics` endpoint | `ip` |
+| `asic_power_watts` | Power consumption (W) from `/metrics` endpoint | `ip` |
+
+**Note**: The exporter fetches from `/metrics` endpoint first (newer API), then falls back to `/api/v1/summary` for backward compatibility.

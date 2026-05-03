@@ -15,3 +15,17 @@ def fetch_summary(ip, password):
     except Exception as e:
         logger.error(f"Error fetching data from {ip}: {e}")
         return None
+
+
+def fetch_metrics(ip, password):
+    try:
+        url = f"http://{ip}/metrics"
+
+        r = requests.get(url, auth=("root", password), timeout=5)
+
+        r.raise_for_status()
+        return r.json()
+
+    except Exception as e:
+        logger.error(f"Error fetching metrics from {ip}: {e}")
+        return None

@@ -18,4 +18,4 @@ POLL_INTERVAL = 10
 # Logging configuration
 LOG_ENABLED = True
 LOG_LEVEL = "INFO"
-LOGS_DIR = "./logs"
+LOGS_DIR = "../logs"
