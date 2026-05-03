@@ -1,10 +1,11 @@
 import time
+
 from prometheus_client import start_http_server
 
-from config import MINERS, POLL_INTERVAL
 from client import fetch_summary
-from metrics import hashrate, temp, fan
+from config import MINERS, POLL_INTERVAL
 from logger import logger
+from metrics import fan, hashrate, temp
 
 
 def process(ip, data):
@@ -20,7 +21,7 @@ def process(ip, data):
         # --- Fan (average RPM) ---
         fans = miner.get("cooling", {}).get("fans", [])
         if fans:
-            avg_fan = sum(f["rpm"] / f["max_rpm"] * 100 for f in fans) / len(fans)
+            avg_fan = sum(f["rpm"] for f in fans) / len(fans)
         else:
             avg_fan = 0
 

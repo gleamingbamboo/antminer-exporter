@@ -7,4 +7,28 @@ dependencies = [
     "grafanalib>=0.7.1",
     "loguru>=0.7.3",
     "prometheus-client>=0.25.0",
+    "requests>=2.33.1",
 ]
+
+[dependency-groups]
+dev = [
+    "mypy>=1.20.2",
+    "pytest>=9.0.3",
+    "pytest-mock>=3.15.1",
+    "ruff>=0.15.12",
+    "tox>=4.53.1",
+    "types-requests>=2.33.0.20260408",
+]
+
+[tool.ruff]
+line-length = 120
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP"]
+
+[tool.mypy]
+python_version = "3.12"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+ignore_missing_imports = true

@@ -1,7 +1,6 @@
-from grafanalib._gen import DashboardEncoder, write_dashboard
-from grafanalib.core import (
-    Dashboard, Graph, Row, Target, YAxes, YAxis
-)
+from grafanalib._gen import write_dashboard
+from grafanalib.core import Dashboard, Graph, Row, Target, YAxes, YAxis
+
 
 def panel(title, expr):
     return Graph(
@@ -49,7 +48,6 @@ dashboard = Dashboard(
 ).auto_panel_ids()
 
 if __name__ == "__main__":
-    import json
     # print(json.dumps(
     #     dashboard.to_json_data(),
     #     cls=DashboardEncoder,

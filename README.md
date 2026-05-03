@@ -85,6 +85,49 @@ docker run -d -p 9100:9100 --name antminer-exporter \
 - Mount a custom `config.py` to `/app/config.py` to override miner settings, log level, etc.
 - Logs are written to `./logs` on the host machine by default (via volume mount).
 
+## Testing
+
+### Prerequisites
+- Dev dependencies installed via `uv sync`
+
+### Run Tests
+```bash
+# Run tests via tox
+uv run tox
+
+# Run tests directly via pytest
+uv run pytest tests/ -v
+```
+
+## Linting & Typechecking
+
+### Ruff (Linter & Formatter)
+```bash
+# Run ruff check (linter)
+uv run ruff check .
+
+# Run ruff format check
+uv run ruff format --check .
+```
+
+### Mypy (Type Checker)
+```bash
+uv run mypy app.py client.py logger.py metrics.py config.py
+```
+
+## CI/CD
+
+This project uses GitHub Actions for:
+- **Testing**: Runs unit tests via tox/pytest on every push/PR to `master`
+- **Linting**: Runs `ruff` (linter + formatter checks) on every push/PR to `master`
+- **Typechecking**: Runs `mypy` on every push/PR to `master`
+- **Docker Publish**: Builds and pushes the Docker image to DockerHub on `master` pushes and version tags (only if tests, lint, and typecheck pass)
+
+### Required Secrets
+Add these to your GitHub repo settings (`Settings → Secrets and variables → Actions`):
+- `DOCKERHUB_USERNAME`: Your DockerHub username (`gleamingbamboo`)
+- `DOCKERHUB_TOKEN`: DockerHub access token with Read/Write permissions
+
 ## Generate Grafana Dashboard
 
 ```bash
