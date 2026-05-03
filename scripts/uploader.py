@@ -2,9 +2,9 @@ import time
 
 import requests
 from loguru import logger
+from prometheus_client import REGISTRY, Gauge, generate_latest
 
 from antminer_exporter.app import scale_fixed_point
-from antminer_exporter.client import fetch_metrics, fetch_summary
 from antminer_exporter.config import (
     MINERS,
     POLL_INTERVAL,
@@ -12,85 +12,70 @@ from antminer_exporter.config import (
     VICTORIA_METRICS_URL,
 )
 
-
-def metrics_to_prometheus(ip, metrics_data):
-    """Convert ASIC /metrics JSON to Prometheus exposition format."""
-    lines = []
-    metrics_array = metrics_data.get("metrics", [])
-    if not metrics_array:
-        return ""
-
-    latest = metrics_array[-1]
-    d = latest.get("data", {})
-
-    # Scale fixed-point values (30 fractional bits)
-    chip_temp = scale_fixed_point(d.get("chip_max_temp", 0))
-    pcb_temp = scale_fixed_point(d.get("pcb_max_temp", 0))
-    fan_duty = scale_fixed_point(d.get("fan_duty", 0))
-    power_w = scale_fixed_point(d.get("power_consumption", 0))
-    hr = d.get("hashrate", 0)
-
-    # Prometheus format
-    lines.append("# HELP asic_chip_temp Chip max temperature (°C)")
-    lines.append("# TYPE asic_chip_temp gauge")
-    lines.append(f'asic_chip_temp{{ip="{ip}"}} {chip_temp}')
-
-    lines.append("# HELP asic_pcb_temp PCB max temperature (°C)")
-    lines.append("# TYPE asic_pcb_temp gauge")
-    lines.append(f'asic_pcb_temp{{ip="{ip}"}} {pcb_temp}')
-
-    lines.append("# HELP asic_fan_duty Fan duty percentage")
-    lines.append("# TYPE asic_fan_duty gauge")
-    lines.append(f'asic_fan_duty{{ip="{ip}"}} {fan_duty}')
-
-    lines.append("# HELP asic_power_watts Power consumption (W)")
-    lines.append("# TYPE asic_power_watts gauge")
-    lines.append(f'asic_power_watts{{ip="{ip}"}} {power_w}')
-
-    lines.append("# HELP asic_hashrate Instant hashrate (TH/s)")
-    lines.append("# TYPE asic_hashrate gauge")
-    lines.append(f'asic_hashrate{{ip="{ip}"}} {hr}')
-
-    return "\n".join(lines)
+# Define Prometheus Gauges for VictoriaMetrics upload
+# These will be auto-collected by generate_latest(REGISTRY)
+asic_chip_temp = Gauge('asic_chip_temp', 'Chip max temperature (°C)', ['ip'])
+asic_pcb_temp = Gauge('asic_pcb_temp', 'PCB max temperature (°C)', ['ip'])
+asic_fan_duty = Gauge('asic_fan_duty', 'Fan duty percentage', ['ip'])
+asic_power_watts = Gauge('asic_power_watts', 'Power consumption (W)', ['ip'])
+asic_hashrate = Gauge('asic_hashrate', 'Instant hashrate (TH/s)', ['ip'])
+# Keep backward compatible ones
+asic_temp = Gauge('asic_temp', 'Temperature', ['ip'])
+asic_fan = Gauge('asic_fan', 'Fan speed', ['ip'])
 
 
-def process_miner(ip, password):
-    """Fetch metrics from a single miner and return Prometheus format string."""
-    # Try /metrics endpoint first
-    data = fetch_metrics(ip, password)
-    if data:
-        return metrics_to_prometheus(ip, data)
-
-    # Fallback to /api/v1/summary
-    data = fetch_summary(ip, password)
-    if data:
-        lines = []
-        miner = data.get("miner", {})
-        hr = miner.get("instant_hashrate", 0)
-        temp_max = miner.get("chip_temp", {}).get("max", 0)
-        fans = miner.get("cooling", {}).get("fans", [])
-        avg_fan = sum(f["rpm"] for f in fans) / len(fans) if fans else 0
-
-        lines.append("# HELP asic_hashrate Instant hashrate (TH/s)")
-        lines.append("# TYPE asic_hashrate gauge")
-        lines.append(f'asic_hashrate{{ip="{ip}"}} {hr}')
-
-        lines.append("# HELP asic_temp Maximum chip temperature (°C)")
-        lines.append("# TYPE asic_temp gauge")
-        lines.append(f'asic_temp{{ip="{ip}"}} {temp_max}')
-
-        lines.append("# HELP asic_fan Average fan RPM")
-        lines.append("# TYPE asic_fan gauge")
-        lines.append(f'asic_fan{{ip="{ip}"}} {avg_fan}')
-
-        return "\n".join(lines)
-
-    return ""
-
-
-def push_to_victoriametrics(metrics_text):
-    """Push Prometheus format metrics to VictoriaMetrics."""
+def process_miner_data(ip: str, data: dict, source: str = "metrics"):
+    """Process miner data and set Prometheus gauge values."""
     try:
+        if source == "metrics":
+            # New /api/v1/metrics format
+            metrics_array = data.get("metrics", [])
+            if not metrics_array:
+                return
+
+            latest = metrics_array[-1]
+            d = latest.get("data", {})
+            
+            # Scale fixed-point values (30 fractional bits)
+            chip = scale_fixed_point(d.get("chip_max_temp", 0))
+            pcb = scale_fixed_point(d.get("pcb_max_temp", 0))
+            duty = scale_fixed_point(d.get("fan_duty", 0))
+            power_w = scale_fixed_point(d.get("power_consumption", 0))
+            hr = d.get("hashrate", 0)
+            
+            # Set gauge values
+            asic_chip_temp.labels(ip=ip).set(chip)
+            asic_pcb_temp.labels(ip=ip).set(pcb)
+            asic_fan_duty.labels(ip=ip).set(duty)
+            asic_power_watts.labels(ip=ip).set(power_w)
+            asic_hashrate.labels(ip=ip).set(hr)
+            
+            logger.debug(f"Processed /metrics for {ip}: chip={chip:.2f}°C")
+            
+        else:
+            # Old /api/v1/summary format
+            miner = data.get("miner", {})
+            hr = miner.get("instant_hashrate", 0)
+            temp_max = miner.get("chip_temp", {}).get("max", 0)
+            fans = miner.get("cooling", {}).get("fans", [])
+            avg_fan = sum(f["rpm"] for f in fans) / len(fans) if fans else 0
+            
+            asic_hashrate.labels(ip=ip).set(hr)
+            asic_temp.labels(ip=ip).set(temp_max)
+            asic_fan.labels(ip=ip).set(avg_fan)
+            
+            logger.debug(f"Processed summary for {ip}: hashrate={hr}")
+            
+    except Exception as e:
+        logger.error(f"Error processing data for {ip}: {e}")
+
+
+def push_to_victoriametrics():
+    """Push Prometheus-format metrics to VictoriaMetrics."""
+    try:
+        # Generate properly formatted Prometheus exposition text
+        metrics_data = generate_latest(REGISTRY)
+        
         headers = {"Content-Type": "text/plain"}
         params = {}
         if VICTORIA_METRICS_TOKEN:
@@ -98,13 +83,13 @@ def push_to_victoriametrics(metrics_text):
 
         response = requests.post(
             VICTORIA_METRICS_URL,
-            data=metrics_text,
+            data=metrics_data,
             headers=headers,
             params=params,
             timeout=10,
         )
         response.raise_for_status()
-        logger.debug(f"Pushed {len(metrics_text)} bytes to VictoriaMetrics")
+        logger.debug(f"Pushed {len(metrics_data)} bytes to VictoriaMetrics")
 
     except Exception as e:
         logger.error(f"Failed to push to VictoriaMetrics: {e}")
@@ -112,25 +97,43 @@ def push_to_victoriametrics(metrics_text):
 
 def main():
     logger.info(f"VictoriaMetrics uploader started, pushing to: {VICTORIA_METRICS_URL}")
-    logger.info(f"Polling interval: {POLL_INTERVAL}s")
+    logger.info(f"Poll interval: {POLL_INTERVAL}s")
 
     while True:
-        all_metrics = []
         for miner in MINERS:
             ip = miner["ip"]
             password = miner["password"]
-
-            logger.debug(f"Fetching metrics from {ip}")
-            metrics_text = process_miner(ip, password)
-            if metrics_text:
-                all_metrics.append(metrics_text)
-            else:
-                logger.warning(f"No data from {ip}")
-
-        if all_metrics:
-            combined = "\n\n".join(all_metrics)
-            push_to_victoriametrics(combined)
-
+            
+            logger.debug(f"Fetching from {ip}")
+            
+            # Try new /api/v1/metrics first
+            try:
+                url = f"http://{ip}/api/v1/metrics"
+                r = requests.get(url, auth=("root", password), timeout=5)
+                r.raise_for_status()
+                data = r.json()
+                if data:
+                    process_miner_data(ip, data, "metrics")
+                    continue
+            except Exception:
+                pass  # Fall back to summary
+            
+            # Fallback to /api/v1/summary
+            try:
+                url = f"http://{ip}/api/v1/summary"
+                r = requests.get(url, auth=("root", password), timeout=5)
+                r.raise_for_status()
+                data = r.json()
+                if data:
+                    process_miner_data(ip, data, "summary")
+                else:
+                    logger.warning(f"No data from {ip}")
+            except Exception as e:
+                logger.warning(f"No data from {ip}: {e}")
+        
+        # Push all collected metrics to VictoriaMetrics
+        push_to_victoriametrics()
+        
         time.sleep(POLL_INTERVAL)
 
 
