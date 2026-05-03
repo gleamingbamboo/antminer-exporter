@@ -17,7 +17,7 @@ RUN uv sync
 COPY . .
 
 # Create default config from example
-RUN cp config.py.example config.py
+RUN cp config.py.example antminer_exporter/config.py
 
 # Create logs directory
 RUN mkdir -p /app/logs
@@ -26,4 +26,4 @@ RUN mkdir -p /app/logs
 EXPOSE 9100
 
 # Start the exporter
-CMD ["uv", "run", "app.py"]
+CMD ["uv", "run", "python", "-m", "antminer_exporter.app"]

@@ -2,10 +2,10 @@ import time
 
 from prometheus_client import start_http_server
 
-from client import fetch_summary
-from config import MINERS, POLL_INTERVAL
-from logger import logger
-from metrics import fan, hashrate, temp
+from .client import fetch_summary
+from .config import MINERS, POLL_INTERVAL
+from .logger import logger
+from .metrics import fan, hashrate, temp
 
 
 def process(ip, data):

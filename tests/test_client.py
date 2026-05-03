@@ -6,16 +6,16 @@ import requests
 
 @pytest.fixture
 def mock_logger(mocker):
-    return mocker.patch("client.logger")
+    return mocker.patch("antminer_exporter.client.logger")
 
 
 @pytest.fixture
 def mock_requests_get(mocker):
-    return mocker.patch("client.requests.get")
+    return mocker.patch("antminer_exporter.client.requests.get")
 
 
 def test_fetch_success(mock_logger, mock_requests_get):
-    from client import fetch_summary
+    from antminer_exporter.client import fetch_summary
 
     # Mock successful response
     mock_response = MagicMock()
@@ -32,7 +32,7 @@ def test_fetch_success(mock_logger, mock_requests_get):
 
 
 def test_fetch_http_error(mock_logger, mock_requests_get):
-    from client import fetch_summary
+    from antminer_exporter.client import fetch_summary
 
     mock_response = MagicMock()
     mock_response.raise_for_status.side_effect = requests.exceptions.HTTPError()
@@ -46,7 +46,7 @@ def test_fetch_http_error(mock_logger, mock_requests_get):
 
 
 def test_fetch_timeout(mock_logger, mock_requests_get):
-    from client import fetch_summary
+    from antminer_exporter.client import fetch_summary
 
     mock_requests_get.side_effect = requests.exceptions.Timeout()
 
@@ -57,7 +57,7 @@ def test_fetch_timeout(mock_logger, mock_requests_get):
 
 
 def test_fetch_invalid_json(mock_logger, mock_requests_get):
-    from client import fetch_summary
+    from antminer_exporter.client import fetch_summary
 
     mock_response = MagicMock()
     mock_response.raise_for_status.return_value = None

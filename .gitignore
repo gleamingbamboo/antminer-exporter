@@ -11,6 +11,16 @@ __pycache__/
 config.py
 logs/
 
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# Coverage
+.coverage
+htmlcov/
+.pytest_cache/
+
 # OS
 Thumbs.db
 Desktop.ini

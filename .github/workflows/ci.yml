@@ -50,7 +50,7 @@ jobs:
       - name: Install dependencies
         run: uv sync --dev
       - name: Run mypy type check
-        run: uv run mypy app.py client.py logger.py metrics.py config.py
+        run: uv run mypy antminer_exporter/
 
   build-and-push:
     needs: [test, lint, typecheck]

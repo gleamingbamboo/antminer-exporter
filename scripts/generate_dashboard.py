@@ -18,32 +18,41 @@ def panel(title, expr):
         ),
     )
 
+
 dashboard = Dashboard(
     title="ASIC Monitoring",
     rows=[
-        Row(panels=[
-            panel("Hashrate (TH/s)", "asic_hashrate_ths"),
-            panel("Temperature (°C)", "asic_temp_max"),
-        ]),
-        Row(panels=[
-            panel("Fan RPM", "asic_fan_avg"),
-            panel("Power (W)", "asic_power_watts"),
-        ]),
-        Row(panels=[
-            panel("Efficiency (J/TH)", "asic_efficiency"),
-        ]),
-        Row(panels=[
-            Graph(
-                title="Board Temps",
-                dataSource="Prometheus",
-                targets=[
-                    Target(
-                        expr="asic_board_temp",
-                        legendFormat="{{ip}} board {{board}}",
-                    )
-                ],
-            )
-        ])
+        Row(
+            panels=[
+                panel("Hashrate (TH/s)", "asic_hashrate_ths"),
+                panel("Temperature (°C)", "asic_temp_max"),
+            ]
+        ),
+        Row(
+            panels=[
+                panel("Fan RPM", "asic_fan_avg"),
+                panel("Power (W)", "asic_power_watts"),
+            ]
+        ),
+        Row(
+            panels=[
+                panel("Efficiency (J/TH)", "asic_efficiency"),
+            ]
+        ),
+        Row(
+            panels=[
+                Graph(
+                    title="Board Temps",
+                    dataSource="Prometheus",
+                    targets=[
+                        Target(
+                            expr="asic_board_temp",
+                            legendFormat="{{ip}} board {{board}}",
+                        )
+                    ],
+                )
+            ]
+        ),
     ],
 ).auto_panel_ids()
 

@@ -15,13 +15,13 @@ uv sync
 
 ## Configuration
 
-Copy the example config:
+Copy the example config to the package directory:
 
 ```bash
-cp config.py.example config.py
+cp config.py.example antminer_exporter/config.py
 ```
 
-Then edit `config.py` to add miner IPs, passwords, and adjust the poll interval:
+Then edit `antminer_exporter/config.py` to add miner IPs, passwords, and adjust the poll interval:
 
 ```python
 MINERS = [
@@ -46,8 +46,16 @@ Uses miner API endpoint `http://{ip}/api/v1/summary` with HTTP basic auth `root:
 
 ## Run Exporter
 
+Using the entry point:
+
 ```bash
-uv run app.py
+uv run antminer-exporter
+```
+
+Or directly:
+
+```bash
+uv run python -m antminer_exporter.app
 ```
 
 Metrics available at `http://localhost:9100/metrics`.
@@ -76,13 +84,13 @@ docker build -t antminer-exporter .
 
 # Run the container
 docker run -d -p 9100:9100 --name antminer-exporter \
-  -v ./config.py:/app/config.py \
+  -v ./antminer_exporter/config.py:/app/antminer_exporter/config.py \
   -v ./logs:/app/logs \
   antminer-exporter
 ```
 
 ### Custom Configuration
-- Mount a custom `config.py` to `/app/config.py` to override miner settings, log level, etc.
+- Mount a custom `antminer_exporter/config.py` to `/app/antminer_exporter/config.py` to override miner settings, log level, etc.
 - Logs are written to `./logs` on the host machine by default (via volume mount).
 
 ## Testing
@@ -112,7 +120,7 @@ uv run ruff format --check .
 
 ### Mypy (Type Checker)
 ```bash
-uv run mypy app.py client.py logger.py metrics.py config.py
+uv run mypy antminer_exporter/
 ```
 
 ## CI/CD

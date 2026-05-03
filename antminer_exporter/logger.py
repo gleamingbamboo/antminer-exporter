@@ -2,7 +2,7 @@ from pathlib import Path
 
 from loguru import logger
 
-from config import LOG_ENABLED, LOG_LEVEL, LOGS_DIR
+from .config import LOG_ENABLED, LOG_LEVEL, LOGS_DIR
 
 if LOG_ENABLED:
     log_dir = Path(LOGS_DIR)

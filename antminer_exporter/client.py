@@ -1,6 +1,6 @@
 import requests
 
-from logger import logger
+from .logger import logger
 
 
 def fetch_summary(ip, password):

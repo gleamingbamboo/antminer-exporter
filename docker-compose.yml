@@ -7,6 +7,6 @@ services:
     ports:
       - "9100:9100"
     volumes:
-      - ./config.py:/app/config.py
+      - ./antminer_exporter/config.py:/app/antminer_exporter/config.py
       - ./logs:/app/logs
     restart: unless-stopped

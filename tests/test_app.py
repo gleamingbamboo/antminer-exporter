@@ -15,19 +15,19 @@ def sample_miner_data():
 
 
 def test_process_valid_data(mocker, sample_miner_data):
-    from app import process
+    from antminer_exporter.app import process
 
     # Mock metrics
     mock_hashrate = MagicMock()
     mock_temp = MagicMock()
     mock_fan = MagicMock()
 
-    mocker.patch("app.hashrate", mock_hashrate)
-    mocker.patch("app.temp", mock_temp)
-    mocker.patch("app.fan", mock_fan)
+    mocker.patch("antminer_exporter.app.hashrate", mock_hashrate)
+    mocker.patch("antminer_exporter.app.temp", mock_temp)
+    mocker.patch("antminer_exporter.app.fan", mock_fan)
 
     # Mock logger
-    mock_logger = mocker.patch("app.logger")
+    mock_logger = mocker.patch("antminer_exporter.app.logger")
 
     ip = "192.168.1.1"
     process(ip, sample_miner_data)
@@ -50,13 +50,13 @@ def test_process_valid_data(mocker, sample_miner_data):
 
 
 def test_process_no_fans(mocker):
-    from app import process
+    from antminer_exporter.app import process
 
     mock_fan = MagicMock()
-    mocker.patch("app.fan", mock_fan)
-    mocker.patch("app.hashrate")
-    mocker.patch("app.temp")
-    mock_logger = mocker.patch("app.logger")
+    mocker.patch("antminer_exporter.app.fan", mock_fan)
+    mocker.patch("antminer_exporter.app.hashrate")
+    mocker.patch("antminer_exporter.app.temp")
+    mock_logger = mocker.patch("antminer_exporter.app.logger")
 
     ip = "192.168.1.1"
     data = {"miner": {"instant_hashrate": 50.0, "chip_temp": {"max": 60}, "cooling": {"fans": []}}}
@@ -68,12 +68,12 @@ def test_process_no_fans(mocker):
 
 
 def test_process_parse_error(mocker):
-    from app import process
+    from antminer_exporter.app import process
 
-    mock_logger = mocker.patch("app.logger")
-    mocker.patch("app.hashrate")
-    mocker.patch("app.temp")
-    mocker.patch("app.fan")
+    mock_logger = mocker.patch("antminer_exporter.app.logger")
+    mocker.patch("antminer_exporter.app.hashrate")
+    mocker.patch("antminer_exporter.app.temp")
+    mocker.patch("antminer_exporter.app.fan")
 
     ip = "192.168.1.1"
     process(ip, None)  # Malformed data

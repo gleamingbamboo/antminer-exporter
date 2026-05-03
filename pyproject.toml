@@ -1,7 +1,7 @@
 [project]
 name = "antminer-exporter"
 version = "0.1.0"
-description = "Add your description here"
+description = "Prometheus exporter for ASIC miners"
 requires-python = ">=3.12"
 dependencies = [
     "grafanalib>=0.7.1",
@@ -9,6 +9,13 @@ dependencies = [
     "prometheus-client>=0.25.0",
     "requests>=2.33.1",
 ]
+
+[project.scripts]
+antminer-exporter = "antminer_exporter.app:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [dependency-groups]
 dev = [
@@ -33,3 +40,6 @@ warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = false
 ignore_missing_imports = true
+
+[tool.uv]
+package = true
