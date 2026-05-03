@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+
+# IDE
+.idea/
+
+# Project-specific
+config.py
+logs/
+
+# OS
+Thumbs.db
+Desktop.ini

@@ -1,0 +1,21 @@
+MINERS = [
+    {
+        "ip": "127.0.0.1",
+        "password": "password"
+    },
+    {
+        "ip": "192.168.0.1",
+        "password": "12345678"
+    },
+    {
+        "ip": "192.168.1.1",
+        "password": "qwerty123456"
+    }
+]
+
+POLL_INTERVAL = 10
+
+# Logging configuration
+LOG_ENABLED = True
+LOG_LEVEL = "INFO"
+LOGS_DIR = "./logs"

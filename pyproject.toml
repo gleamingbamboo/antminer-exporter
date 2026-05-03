@@ -1,0 +1,10 @@
+[project]
+name = "antminer-exporter"
+version = "0.1.0"
+description = "Add your description here"
+requires-python = ">=3.12"
+dependencies = [
+    "grafanalib>=0.7.1",
+    "loguru>=0.7.3",
+    "prometheus-client>=0.25.0",
+]
