@@ -3,31 +3,6 @@ import requests
 from .logger import logger
 
 
-def fetch_summary(ip, password):
-    try:
-        url = f"http://{ip}/api/v1/summary"
-
-        r = requests.get(url, auth=("root", password), timeout=5)
-
-        r.raise_for_status()
-        return r.json()
-
-    except Exception as e:
-        logger.error(f"Error fetching data from {ip}: {e}")
-        return None
-
-
-def fetch_metrics(ip, password):
-    try:
-        url = f"http://{ip}/metrics"
-        r = requests.get(url, auth=("root", password), timeout=5)
-        r.raise_for_status()
-        return r.json()
-    except Exception as e:
-        logger.error(f"Error fetching metrics from {ip}: {e}")
-        return None
-
-
 class MinerClient:
     """Client for ASIC miner API with unlock support."""
 
@@ -59,12 +34,11 @@ class MinerClient:
             logger.error(f"Unlock error for {self.ip}: {e}")
         return False
 
-    def _get_headers(self) -> dict:
+    def _get_headers(self) -> dict[str, str]:
         """Return headers with token if available."""
         headers: dict[str, str] = {}
         if self.token:
-            # Use token - need to check how miner expects it (cookie, header, etc.)
-            # Based on typical patterns, might be sent as cookie or auth header
+            # Token might be used as cookie or auth header - check per miner model
             pass
         return headers
 

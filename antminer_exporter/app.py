@@ -2,7 +2,7 @@ import time
 
 from prometheus_client import start_http_server
 
-from antminer_exporter.client import fetch_metrics, fetch_summary
+from antminer_exporter.client import MinerClient
 from antminer_exporter.config import MINERS, POLL_INTERVAL
 from antminer_exporter.logger import logger
 from antminer_exporter.metrics import chip_temp, fan, fan_duty, hashrate, pcb_temp, power, temp
@@ -85,12 +85,17 @@ def main():
             password = miner["password"]
 
             logger.debug(f"Fetching data from {ip}")
-            # Try new /metrics endpoint first, fallback to old /api/v1/summary
-            data = fetch_metrics(ip, password)
+            # Use MinerClient
+            client = MinerClient(ip, password)
+            # Optionally unlock
+            # client.unlock()
+
+            # Try new /api/v1/metrics endpoint first, fallback to /api/v1/summary
+            data = client.fetch_metrics()
             if data:
                 process_metrics(ip, data)
             else:
-                data = fetch_summary(ip, password)
+                data = client.fetch_summary()
                 if data:
                     process(ip, data)
                 else:
