@@ -3,14 +3,15 @@ import time
 from prometheus_client import start_http_server
 
 from antminer_exporter.client import MinerClient
-from antminer_exporter.config import MINERS, POLL_INTERVAL
 from antminer_exporter.logger import logger
 from antminer_exporter.metrics import chip_temp, fan, fan_duty, hashrate, pcb_temp, power, temp
+from antminer_exporter.utils import load_yaml
 
 
 def scale_fixed_point(value, scale=2**30):
     """Convert fixed-point value (30 fractional bits) to float."""
-    return value / scale if value else 0
+    # return value / scale if value else 0
+    return value
 
 
 def process(ip, data):
@@ -76,13 +77,14 @@ def process_metrics(ip, data):
 
 
 def main():
-    start_http_server(9100)
-    logger.info("Exporter started on :9100")
+    start_http_server(9222)
+    logger.info("Exporter started on :9222")
 
     while True:
-        for miner in MINERS:
-            ip = miner["ip"]
-            password = miner["password"]
+        MINERS = load_yaml('../miners.yml')
+        for ip, password in MINERS.items():
+            # ip = miner["ip"]
+            # password = miner["password"]
 
             logger.debug(f"Fetching data from {ip}")
             # Use MinerClient
@@ -101,7 +103,7 @@ def main():
                 else:
                     logger.warning(f"No data received from {ip}")
 
-        time.sleep(POLL_INTERVAL)
+        time.sleep(10)
 
 
 if __name__ == "__main__":

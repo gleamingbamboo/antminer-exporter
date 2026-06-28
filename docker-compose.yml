@@ -1,12 +1,23 @@
 version: '3.8'
 
 services:
-  antminer-exporter:
-    build: .
+  exporter:
     container_name: antminer-exporter
+    build:
+      context: .
+      dockerfile: Dockerfile
     ports:
-      - "9100:9100"
+      - "9222:9222"
     volumes:
-      - ./antminer_exporter/config.py:/app/antminer_exporter/config.py
-      - ./logs:/app/logs
+      - miners.yml:./miners.yml
+    restart: unless-stopped
+#    depends_on:
+#      - victoria
+
+  # Example service for VictoriaMetrics (requires separate setup)
+  victoria:
+    image: grafana/victoria-metrics:latest # Use actual recommended image
+    container_name: victoria
+    ports:
+      - "8428:8428"
     restart: unless-stopped

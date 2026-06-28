@@ -1,8 +1,11 @@
+import logging
 from pathlib import Path
 
 from loguru import logger
 
-from .config import LOG_ENABLED, LOG_LEVEL, LOGS_DIR
+LOG_ENABLED = True
+LOG_LEVEL = logging.INFO
+LOGS_DIR = Path("logs")
 
 if LOG_ENABLED:
     log_dir = Path(LOGS_DIR)
